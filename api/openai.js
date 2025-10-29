@@ -20,7 +20,8 @@ app.post("/api/openai", async (req, res) => {
       return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
     }
 
-    const apiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const diversitySeed = Math.random().toString(36).slice(2, 8);
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
@@ -32,9 +33,9 @@ app.post("/api/openai", async (req, res) => {
           {
             role: "system",
             content: `
-              너는 상세페이지 디자인용 AI 레이아웃 생성기다.
+              너는 상세페이지 AI 레이아웃 디자이너다.
               반드시 아래 JSON 구조로만 응답한다.
-              JSON 이외의 어떤 문장이나 설명, 텍스트도 포함하지 않는다.
+              JSON 이외의 문장은 절대 포함하지 않는다.
 
               {
                 "sections": [
@@ -48,32 +49,31 @@ app.post("/api/openai", async (req, res) => {
                 ]
               }
 
-              tone 필드 설명:
-              - 프리미엄: 고급·세련·럭셔리 톤
-              - 감성: 감정적·따뜻·공감형 톤
-              - 모던: 미니멀·혁신적·간결한 톤
-              - 친근: 편안·생활형·유머러스 톤
-              - 신뢰: 전문가·안정감·정직한 톤
+              tone은 섹션마다 달라도 좋다.
+              tone이 모두 동일하지 않도록 2~3개 정도 섞어라.
+              섹션 수는 4~7개 사이에서 랜덤으로 정하라.
+              각 섹션은 문체, 강조점, 구성 순서가 일정하지 않아야 한다.
             `,
           },
           {
             role: "user",
             content: `
               ${prompt}
-              (랜덤값:${Math.random().toString(36).slice(2,8)})
-              각 섹션에 tone을 반드시 포함해서 JSON만 반환해줘.
+              구성 스타일은 ${["감성형","비주얼형","스토리텔링형","정보전달형","프리미엄 브랜드형"][Math.floor(Math.random()*5)]}으로 작성하라.
+              문체는 ${["서술체","직설체","감성체","광고카피체","브랜드보이스체"][Math.floor(Math.random()*5)]}로 표현하라.
+              (랜덤값:${diversitySeed})
             `,
           },
         ],
       }),
     });
 
-    console.log("✅ OpenAI API status:", apiResponse.status);
-    const data = await apiResponse.json();
+    console.log("✅ OpenAI API status:", response.status);
+    const data = await response.json();
     console.log("🧩 OpenAI raw data:", JSON.stringify(data, null, 2));
 
     const message = data.choices?.[0]?.message?.content;
-    if (!message) throw new Error("OpenAI response missing message content");
+    if (!message) throw new Error("No message in OpenAI response");
 
     res.status(200).json({ content: message });
   } catch (error) {
