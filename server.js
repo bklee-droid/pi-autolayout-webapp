@@ -8,12 +8,11 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
-app.use(express.static(__dirname)); // index.html served automatically
+app.use(express.static(__dirname));
 
 app.post("/api/openai", async (req, res) => {
   try {
     const { prompt } = req.body;
-    console.log("📩 Received prompt:", prompt);
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -26,8 +25,28 @@ app.post("/api/openai", async (req, res) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are an AI layout generator. Respond ONLY with JSON having {sections:[{title,subtitle,description,cta}]}.",
+            content: `
+            You are a layout generation assistant for product detail pages.
+            Always respond ONLY with valid JSON:
+            {
+              "sections": [
+                {
+                  "title": "...",
+                  "subtitle": "...",
+                  "description": "...",
+                  "cta": "...",
+                  "tone": "프리미엄" | "감성" | "모던" | "친근" | "신뢰"
+                }
+              ]
+            }
+
+            tone 결정 기준:
+            - 프리미엄: 고급·세련·럭셔리·브랜드 중심 문체
+            - 감성: 감정적·따뜻한·공감형 표현
+            - 모던: 미니멀·혁신적·기술 중심
+            - 친근: 유머러스·편안·생활형 문체
+            - 신뢰: 전문가·안정감·설득형 표현
+            `,
           },
           { role: "user", content: prompt },
         ],
@@ -43,5 +62,5 @@ app.post("/api/openai", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
