@@ -4,15 +4,16 @@ const preview = document.getElementById("preview");
 const toneMapKor = {
   luxury: "프리미엄",
   trust: "신뢰",
-  active: "활동적",
   modern: "모던",
   friendly: "친근",
+  emotional: "감성",
 };
 
 generateBtn.addEventListener("click", async () => {
-  const brand = document.getElementById("brandName").value.trim() || "기본";
+  const brand = document.getElementById("brandName").value.trim() || "기본 브랜드";
   const toneValue = document.getElementById("tone").value;
   const toneKor = toneMapKor[toneValue] || "프리미엄";
+  const product = document.getElementById("productDesc").value.trim() || "제품 설명 없음";
 
   console.log("✅ 버튼 클릭됨");
   preview.innerHTML = `<div class='text-center text-gray-500 mt-4'>AI가 레이아웃을 구성 중입니다...</div>`;
@@ -22,17 +23,21 @@ generateBtn.addEventListener("click", async () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        prompt: `${brand} 브랜드의 ${toneKor} 톤앤매너를 가진 상세페이지 레이아웃을 만들어줘. 
-        각 섹션은 title, subtitle, description, cta, tone 필드를 포함해야 해.`,
+        prompt: `
+        ${brand} 브랜드의 ${toneKor} 톤앤매너를 기반으로 
+        아래 상품 설명을 참고하여 상세페이지 레이아웃을 만들어줘.
+
+        [상품 설명]
+        ${product}
+
+        각 섹션은 title, subtitle, description, cta, tone(프리미엄/감성/모던/친근/신뢰 중 하나)을 포함한 JSON 형식으로 응답해줘.`,
       }),
     });
 
     const data = await res.json();
     const text = data.content || data.message?.content;
-
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("JSON 응답이 비정상입니다.");
-
     const layout = JSON.parse(jsonMatch[0]);
     renderLayout(layout.sections, brand);
   } catch (e) {
@@ -82,13 +87,13 @@ function renderLayout(sections, brand) {
     box.style.color = style.text;
 
     box.innerHTML = `
-  <h2 style="font-weight:${style.weight};font-size:1.1rem;margin-bottom:6px">${i + 1}. ${s.title}</h2>
-  <p style="font-size:0.9rem;margin-bottom:4px">${s.subtitle}</p>
-  <p style="font-size:0.85rem;line-height:1.5;margin-bottom:10px">${s.description}</p>
-  <button style="background:${style.button};color:white;border:none;padding:8px 14px;border-radius:8px;cursor:pointer">
-    ${s.cta}
-  </button>
-`;
+      <h2 style="font-weight:${style.weight};font-size:1.1rem;margin-bottom:6px">${i + 1}. ${s.title}</h2>
+      <p style="font-size:0.9rem;margin-bottom:4px">${s.subtitle}</p>
+      <p style="font-size:0.85rem;line-height:1.5;margin-bottom:10px">${s.description}</p>
+      <button style="background:${style.button};color:white;border:none;padding:8px 14px;border-radius:8px;cursor:pointer">
+        ${s.cta}
+      </button>
+    `;
 
     box.addEventListener("mouseenter", () => (box.style.transform = "scale(1.03)"));
     box.addEventListener("mouseleave", () => (box.style.transform = "scale(1)"));
