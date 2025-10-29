@@ -1,3 +1,5 @@
+console.log("🔑 OPENAI_API_KEY detected:", !!process.env.OPENAI_API_KEY);
+
 module.exports = async (req, res) => {
   try {
     const { prompt } = req.body;
