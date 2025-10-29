@@ -82,13 +82,13 @@ function renderLayout(sections, brand) {
     box.style.color = style.text;
 
     box.innerHTML = `
-      <h2 style="font-weight:${style.weight};font-size:1.1rem;margin-bottom:6px">${i + 1}. ${s.title}</h2>
-      <p style="font-size:0.9rem;margin-bottom:4px">${s.subtitle}</p>
-      <p style="font-size:0.85rem;line-height:1.5;margin-bottom:10px">${s.description}</p>
-      <button style="background:${style.button};color:white;border:none;padding:8px 14px;border-radius:8px;cursor:pointer">
-        ${s.cta}
-      </button>
-    `;
+  <h2 style="font-weight:${style.weight};font-size:1.1rem;margin-bottom:6px">${i + 1}. ${s.title}</h2>
+  <p style="font-size:0.9rem;margin-bottom:4px">${s.subtitle}</p>
+  <p style="font-size:0.85rem;line-height:1.5;margin-bottom:10px">${s.description}</p>
+  <button style="background:${style.button};color:white;border:none;padding:8px 14px;border-radius:8px;cursor:pointer">
+    ${s.cta}
+  </button>
+`;
 
     box.addEventListener("mouseenter", () => (box.style.transform = "scale(1.03)"));
     box.addEventListener("mouseleave", () => (box.style.transform = "scale(1)"));
