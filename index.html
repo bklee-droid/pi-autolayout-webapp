@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>PI AutoLayout WebApp (Brand Version)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col items-center p-6">
+
+  <h1 class="text-3xl font-bold mb-6 text-indigo-600">PI AutoLayout (브랜드형)</h1>
+
+  <div class="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-6 mb-6">
+    <label class="block text-sm font-medium mb-2">브랜드 이름</label>
+    <input id="brandName" type="text" placeholder="예: Modudl, Meloncha..."
+           class="w-full border border-gray-300 rounded-lg p-3 mb-4">
+
+    <label class="block text-sm font-medium mb-2">브랜드 톤앤매너</label>
+    <select id="tone" class="w-full border border-gray-300 rounded-lg p-3 mb-4">
+      <option value="luxury">고급스러움</option>
+      <option value="trust">신뢰감</option>
+      <option value="active">활동적</option>
+      <option value="modern">모던하고 세련됨</option>
+      <option value="friendly">친근하고 따뜻함</option>
+    </select>
+
+    <button id="generateBtn"
+      class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700">
+      AI 레이아웃 생성하기
+    </button>
+  </div>
+
+  <div id="preview" class="w-full max-w-3xl space-y-4"></div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
