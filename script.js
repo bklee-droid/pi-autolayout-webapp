@@ -12,23 +12,31 @@ generateBtn.addEventListener("click", async () => {
 
   preview.innerHTML = `<div class='text-center text-gray-500 mt-4'>AI가 레이아웃을 구성 중입니다...</div>`;
 
-  const res = await fetch("/api/openai", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      prompt: `브랜드 ${brand}의 ${tone} 톤앤매너를 가진 상세페이지 AI 자동 레이아웃을 JSON 형식으로 만들어줘. 
-      각 섹션은 title, subtitle, description, cta를 포함하며 4~6개의 섹션으로 구성해줘.`
-    }),
-  });
-
-  const data = await res.json();
   try {
-    const jsonText = data.content.match(/\{[\s\S]*\}/)?.[0];
-    const layout = JSON.parse(jsonText);
+    const res = await fetch("/api/openai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: `브랜드 ${brand}의 ${tone} 톤앤매너를 가진 상세페이지 AI 자동 레이아웃을 JSON 형식으로 만들어줘. 
+        각 섹션은 title, subtitle, description, cta를 포함하며 4~6개의 섹션으로 구성해줘.`
+      }),
+    });
+
+    const data = await res.json();
+    const text = data.content || data.message?.content || data.choices?.[0]?.message?.content;
+
+    if (!text) throw new Error("AI 응답에 content 필드가 없습니다.");
+
+    console.log("AI raw response:", text);
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("JSON 구조를 찾을 수 없습니다.");
+
+    const layout = JSON.parse(jsonMatch[0]);
     renderLayout(layout.sections);
   } catch (e) {
-    preview.innerHTML = `<div class='text-red-500 text-center'>AI 응답을 읽을 수 없습니다. 다시 시도해주세요.</div>`;
-    console.error(e);
+    preview.innerHTML = `<div class='text-red-500 text-center mt-4'>AI 응답을 읽을 수 없습니다. 다시 시도해주세요.</div>`;
+    console.error("파싱 오류:", e);
   }
 });
 
