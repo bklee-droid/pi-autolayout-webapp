@@ -1,5 +1,6 @@
 const generateBtn = document.getElementById("generateBtn");
 const preview = document.getElementById("preview");
+const downloadBtn = document.getElementById("downloadBtn");
 
 const toneMapKor = {
   luxury: "프리미엄",
@@ -9,14 +10,12 @@ const toneMapKor = {
   emotional: "감성",
 };
 
-// 브랜드별 tone 비율 설정
 const brandToneWeight = {
   더쉬어: { 프리미엄: 0.7, 감성: 0.3 },
   모두들: { 친근: 0.6, 모던: 0.4 },
   멜론차: { 감성: 0.8, 프리미엄: 0.2 },
 };
 
-// tone별 CTA 스타일
 const toneCTA = {
   프리미엄: ["지금 구매하기", "럭셔리 컬렉션 보기"],
   감성: ["감성 스토리 더보기", "우리의 감성을 느껴보세요"],
@@ -25,7 +24,6 @@ const toneCTA = {
   신뢰: ["제품 보러가기", "자세히 확인하기"],
 };
 
-// tone별 폰트 비율 (기본 폰트 크기를 기준으로 비율 조정)
 const toneFontRatio = {
   프리미엄: { title: 1.25, subtitle: 1.05, cta: 1.0 },
   감성: { title: 1.15, subtitle: 1.0, cta: 0.95 },
@@ -40,7 +38,6 @@ generateBtn.addEventListener("click", async () => {
   const toneKor = toneMapKor[toneValue] || "프리미엄";
   const product = document.getElementById("productDesc").value.trim() || "제품 설명 없음";
 
-  // 브랜드 tone weight 문장 생성
   const toneWeightText = brandToneWeight[brand]
     ? Object.entries(brandToneWeight[brand])
         .map(([tone, weight]) => `${tone} ${Math.round(weight * 100)}%`)
@@ -75,6 +72,7 @@ generateBtn.addEventListener("click", async () => {
     const text = data.content || data.message?.content;
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("JSON 응답이 비정상입니다.");
+
     const layout = JSON.parse(jsonMatch[0]);
     renderLayout(layout.sections, brand);
   } catch (e) {
@@ -85,6 +83,7 @@ generateBtn.addEventListener("click", async () => {
 
 function renderLayout(sections, brand) {
   preview.innerHTML = "";
+  downloadBtn.classList.remove("hidden"); // 다운로드 버튼 표시
 
   const toneMapBase = {
     프리미엄: { bg: "#ede9fe", text: "#1e1b4b", button: "#5b21b6", font: "Pretendard", weight: 600 },
@@ -116,11 +115,8 @@ function renderLayout(sections, brand) {
         : {};
     const style = { ...base, ...custom };
 
-    // CTA 문장 tone별 랜덤 자동화
     const ctaSet = toneCTA[tone] || ["지금 확인하기"];
     const ctaText = s.cta || ctaSet[Math.floor(Math.random() * ctaSet.length)];
-
-    // tone별 폰트 비율 적용
     const ratio = toneFontRatio[tone] || { title: 1, subtitle: 1, cta: 1 };
 
     const box = document.createElement("div");
@@ -130,9 +126,7 @@ function renderLayout(sections, brand) {
     box.style.color = style.text;
 
     box.innerHTML = `
-      <h2 style="font-weight:${style.weight};font-size:${1.1 * ratio.title}rem;margin-bottom:6px">
-        ${i + 1}. ${s.title}
-      </h2>
+      <h2 style="font-weight:${style.weight};font-size:${1.1 * ratio.title}rem;margin-bottom:6px">${i + 1}. ${s.title}</h2>
       <p style="font-size:${0.9 * ratio.subtitle}rem;margin-bottom:4px">${s.subtitle}</p>
       <p style="font-size:0.85rem;line-height:1.5;margin-bottom:10px">${s.description}</p>
       <button style="background:${style.button};color:white;border:none;padding:${8 * ratio.cta}px ${14 * ratio.cta}px;
@@ -146,3 +140,28 @@ function renderLayout(sections, brand) {
     preview.appendChild(box);
   });
 }
+
+// 결과 JPG 다운로드 기능
+downloadBtn.addEventListener("click", async () => {
+  const target = document.getElementById("preview");
+  downloadBtn.textContent = "이미지 생성 중...";
+  downloadBtn.disabled = true;
+
+  try {
+    const canvas = await html2canvas(target, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+    });
+    const link = document.createElement("a");
+    link.download = `PI_AutoLayout_${new Date().toISOString().split("T")[0]}.jpg`;
+    link.href = canvas.toDataURL("image/jpeg", 0.95);
+    link.click();
+  } catch (error) {
+    console.error("이미지 저장 오류:", error);
+    alert("이미지를 생성하는 중 오류가 발생했습니다.");
+  } finally {
+    downloadBtn.textContent = "결과 JPG 다운로드";
+    downloadBtn.disabled = false;
+  }
+});

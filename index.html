@@ -38,9 +38,17 @@
       class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700">
       AI 레이아웃 생성하기
     </button>
+    <button id="downloadBtn"
+  class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 mt-2 hidden">
+  결과 JPG 다운로드
+</button>
+
   </div>
 
   <div id="preview" class="w-full max-w-3xl space-y-4"></div>
+
+  <!-- html2canvas for image export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <script src="script.js"></script>
 </body>
