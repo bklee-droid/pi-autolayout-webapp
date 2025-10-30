@@ -125,18 +125,41 @@ function renderLayout(sections, brand) {
     box.style.fontFamily = style.font;
     box.style.color = style.text;
 
+    // ✅ 수정 가능한 텍스트(contenteditable)
     box.innerHTML = `
-      <h2 style="font-weight:${style.weight};font-size:${1.1 * ratio.title}rem;margin-bottom:6px">${i + 1}. ${s.title}</h2>
-      <p style="font-size:${0.9 * ratio.subtitle}rem;margin-bottom:4px">${s.subtitle}</p>
-      <p style="font-size:0.85rem;line-height:1.5;margin-bottom:10px">${s.description}</p>
-      <button style="background:${style.button};color:white;border:none;padding:${8 * ratio.cta}px ${14 * ratio.cta}px;
-        border-radius:8px;cursor:pointer;font-size:${0.85 * ratio.cta}rem">
-        ${ctaText}
+      <h2 contenteditable="true" style="font-weight:${style.weight};
+          font-size:${1.1 * ratio.title}rem;margin-bottom:6px;outline:none;">
+          ${i + 1}. ${s.title}
+      </h2>
+
+      <p contenteditable="true" style="font-size:${0.9 * ratio.subtitle}rem;
+          margin-bottom:4px;outline:none;">
+          ${s.subtitle}
+      </p>
+
+      <p contenteditable="true" style="font-size:0.85rem;line-height:1.5;
+          margin-bottom:10px;outline:none;">
+          ${s.description}
+      </p>
+
+      <button contenteditable="true" style="background:${style.button};
+          color:white;border:none;padding:${8 * ratio.cta}px ${14 * ratio.cta}px;
+          border-radius:8px;cursor:pointer;font-size:${0.85 * ratio.cta}rem;outline:none;">
+          ${ctaText}
       </button>
     `;
 
+    // 미묘한 hover 효과
     box.addEventListener("mouseenter", () => (box.style.transform = "scale(1.03)"));
     box.addEventListener("mouseleave", () => (box.style.transform = "scale(1)"));
+
+    // ✅ 사용자가 수정한 내용 console에 자동 반영
+    box.querySelectorAll("[contenteditable]").forEach(el => {
+      el.addEventListener("input", () => {
+        console.log(`✏️ 수정됨: ${el.innerText}`);
+      });
+    });
+
     preview.appendChild(box);
   });
 }
