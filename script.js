@@ -2,6 +2,7 @@ const generateBtn = document.getElementById("generateBtn");
 const preview = document.getElementById("preview");
 const downloadBtn = document.getElementById("downloadBtn");
 
+// 톤 매핑
 const toneMapKor = {
   luxury: "프리미엄",
   trust: "신뢰",
@@ -10,12 +11,25 @@ const toneMapKor = {
   emotional: "감성",
 };
 
-const brandToneWeight = {
-  더쉬어: { 프리미엄: 0.7, 감성: 0.3 },
-  모두들: { 친근: 0.6, 모던: 0.4 },
-  멜론차: { 감성: 0.8, 프리미엄: 0.2 },
+// tone별 문체 규칙
+const toneStyleRules = {
+  프리미엄: "품격 있고 간결한 문체, 전문 용어 사용, 군더더기 없는 설명.",
+  감성: "감정적으로 공감시키는 문체, 부드럽고 따뜻한 표현.",
+  모던: "간결하고 트렌디한 문체, 영어 키워드 일부 포함 가능.",
+  친근: "대화체 문체, 쉽고 유머러스하게.",
+  신뢰: "데이터 기반, 객관적 어조, 근거 중심.",
 };
 
+// 5단계 스토리 구조
+const storyStages = [
+  { key: "problem", name: "문제 제기 (Pain Point)", imgHint: "사용자의 불편, 고민, 일상 속 문제를 상징하는 이미지" },
+  { key: "solution", name: "해결 제시 (Solution)", imgHint: "제품 또는 브랜드가 문제를 해결하는 모습을 보여주는 이미지" },
+  { key: "benefit", name: "강점 강조 (Benefit)", imgHint: "제품의 주요 특징과 장점을 강조하는 클로즈업 이미지" },
+  { key: "proof", name: "사회적 증거 (Review)", imgHint: "리뷰, 별점, 인증, 고객 만족을 나타내는 이미지" },
+  { key: "cta", name: "행동 유도 (Call to Action)", imgHint: "명확한 구매 유도나 참여 요청을 시각화한 이미지" },
+];
+
+// CTA 문구 tone별
 const toneCTA = {
   프리미엄: ["지금 구매하기", "럭셔리 컬렉션 보기"],
   감성: ["감성 스토리 더보기", "우리의 감성을 느껴보세요"],
@@ -24,49 +38,17 @@ const toneCTA = {
   신뢰: ["제품 보러가기", "자세히 확인하기"],
 };
 
-const toneFontRatio = {
-  프리미엄: { title: 1.25, subtitle: 1.05, cta: 1.0 },
-  감성: { title: 1.15, subtitle: 1.0, cta: 0.95 },
-  모던: { title: 1.1, subtitle: 1.0, cta: 1.0 },
-  친근: { title: 1.1, subtitle: 1.0, cta: 1.05 },
-  신뢰: { title: 1.05, subtitle: 0.95, cta: 0.95 },
-};
-
-const toneMapBase = {
-  프리미엄: { bg: "#ede9fe", text: "#1e1b4b", button: "#5b21b6", font: "Pretendard", weight: 600 },
-  감성: { bg: "#fce7f3", text: "#831843", button: "#db2777", font: "Nanum Myeongjo", weight: 500 },
-  모던: { bg: "#e5e7eb", text: "#111827", button: "#1f2937", font: "Inter", weight: 600 },
-  친근: { bg: "#ffedd5", text: "#7c2d12", button: "#ea580c", font: "Noto Sans KR", weight: 500 },
-  신뢰: { bg: "#dbeafe", text: "#1e3a8a", button: "#2563eb", font: "Inter", weight: 600 },
-};
-
-const brandPalettes = {
-  모두들: {
-    프리미엄: { bg: "#ede9fe", button: "#5b21b6" },
-    감성: { bg: "#fff1f2", button: "#e11d48" },
-    신뢰: { bg: "#e0f2fe", button: "#0284c7" },
-  },
-  더쉬어: {
-    프리미엄: { bg: "#f5f3ff", button: "#7c3aed" },
-    감성: { bg: "#ffe4e6", button: "#f43f5e" },
-    모던: { bg: "#f3f4f6", button: "#111827" },
-  },
-};
-
 // ---------------------- AI 생성 -------------------------
 generateBtn.addEventListener("click", async () => {
   const brand = document.getElementById("brandName").value.trim() || "기본 브랜드";
   const toneValue = document.getElementById("tone").value;
   const toneKor = toneMapKor[toneValue] || "프리미엄";
+  const toneStyle = toneStyleRules[toneKor];
   const product = document.getElementById("productDesc").value.trim() || "제품 설명 없음";
 
-  const toneWeightText = brandToneWeight[brand]
-    ? Object.entries(brandToneWeight[brand])
-        .map(([tone, weight]) => `${tone} ${Math.round(weight * 100)}%`)
-        .join(", ")
-    : `${toneKor} 100%`;
+  preview.innerHTML = `<div class='text-center text-gray-500 mt-4'>AI가 상세페이지 스토리를 구성 중입니다...</div>`;
 
-  preview.innerHTML = `<div class='text-center text-gray-500 mt-4'>AI가 레이아웃을 구성 중입니다...</div>`;
+  const stageList = storyStages.map((s, i) => `${i + 1}. ${s.name}`).join("\n");
 
   try {
     const res = await fetch("/api/openai", {
@@ -74,17 +56,18 @@ generateBtn.addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         prompt: `
-        ${brand} 브랜드의 ${toneKor} 톤앤매너를 기반으로 
-        아래 상품 설명을 참고하여 상세페이지 레이아웃을 만들어줘.
+        ${brand} 브랜드의 ${toneKor} 톤앤매너(${toneStyle})로 아래 상품 설명을 중심으로
+        상세페이지 스토리를 만들어줘.
 
         [상품 설명]
         ${product}
 
-        이 브랜드의 tone 비율은 다음과 같아:
-        ${toneWeightText}
+        스토리는 다음 5단계를 반드시 포함해야 한다:
+        ${stageList}
 
-        각 섹션은 title, subtitle, description, tone, cta를 포함한 JSON 형식으로 응답하고,
-        tone에 따라 CTA 문장을 자연스럽게 변형해줘.
+        각 섹션은 title, subtitle, description, cta, tone, stage, imagePrompt 필드를 포함해야 한다.
+        각 섹션의 imagePrompt에는 '${toneKor}' 톤에 어울리는 ${brand}의 분위기를 담은 ${stageList}용 이미지 설명을 써줘.
+        JSON 형식으로만 응답해.
         `,
       }),
     });
@@ -102,59 +85,35 @@ generateBtn.addEventListener("click", async () => {
   }
 });
 
-// ---------------------- 렌더 + 편집기 기능 -------------------------
+// ---------------------- 렌더 -------------------------
 function renderLayout(sections, brand) {
   preview.innerHTML = "";
   downloadBtn.classList.remove("hidden");
 
-  const savedData = JSON.parse(localStorage.getItem("piLayoutSave") || "{}");
-
   sections.forEach((s, i) => {
     const tone = s.tone || "프리미엄";
-    const base = toneMapBase[tone];
-    const custom =
-      brandPalettes[brand] && brandPalettes[brand][tone]
-        ? brandPalettes[brand][tone]
-        : {};
-    const style = { ...base, ...custom };
-
+    const base = toneMapBase[tone] || toneMapBase["프리미엄"];
     const ctaSet = toneCTA[tone] || ["지금 확인하기"];
     const ctaText = s.cta || ctaSet[Math.floor(Math.random() * ctaSet.length)];
-    const ratio = toneFontRatio[tone] || { title: 1, subtitle: 1, cta: 1 };
-
-    const id = `${brand}-${i}`;
-    const saved = savedData[id] || {};
 
     const box = document.createElement("div");
     box.className = "rounded-2xl shadow-md p-6 mb-5 transition hover:shadow-xl";
-    box.style.backgroundColor = style.bg;
-    box.style.fontFamily = style.font;
-    box.style.color = style.text;
+    box.style.backgroundColor = base.bg;
+    box.style.fontFamily = base.font;
+    box.style.color = base.text;
 
-    // ✅ contenteditable + 하이라이트 + tone 실시간 반응
+    // 단계별 이미지 제안 문구
+    const imgHint = s.imagePrompt || storyStages[i]?.imgHint || "브랜드 감성 이미지";
+
     box.innerHTML = `
-      <h2 contenteditable="true" class="editable" data-field="title" data-tone="${tone}" data-id="${id}"
-        style="font-weight:${style.weight};font-size:${1.1 * ratio.title}rem;margin-bottom:6px;outline:none;cursor:text;user-select:text;transition:background-color 0.2s ease;">
-        ${saved.title || s.title}
-      </h2>
-
-      <p contenteditable="true" class="editable" data-field="subtitle" data-tone="${tone}" data-id="${id}"
-        style="font-size:${0.9 * ratio.subtitle}rem;margin-bottom:4px;outline:none;cursor:text;user-select:text;transition:background-color 0.2s ease;">
-        ${saved.subtitle || s.subtitle}
-      </p>
-
-      <p contenteditable="true" class="editable" data-field="description" data-tone="${tone}" data-id="${id}"
-        style="font-size:0.85rem;line-height:1.5;margin-bottom:10px;outline:none;cursor:text;user-select:text;transition:background-color 0.2s ease;">
-        ${saved.description || s.description}
-      </p>
-
-      <button contenteditable="true" class="editable" data-field="cta" data-tone="${tone}" data-id="${id}"
-        style="background:${style.button};color:white;border:none;padding:${8 * ratio.cta}px ${14 * ratio.cta}px;border-radius:8px;cursor:text;user-select:text;font-size:${0.85 * ratio.cta}rem;outline:none;transition:background-color 0.2s ease;">
-        ${saved.cta || ctaText}
-      </button>
+      <h2 contenteditable="true" class="editable font-bold" style="font-size:1.2rem;margin-bottom:6px">${s.title}</h2>
+      <p contenteditable="true" style="font-size:0.95rem;margin-bottom:4px">${s.subtitle}</p>
+      <p contenteditable="true" style="font-size:0.85rem;line-height:1.5;margin-bottom:10px">${s.description}</p>
+      <button contenteditable="true" style="background:${base.button};color:white;border:none;padding:8px 14px;border-radius:8px;cursor:text;font-size:0.9rem">${ctaText}</button>
+      <div class="mt-3 text-xs text-gray-600 italic">🖼️ 이미지 제안: ${imgHint}</div>
     `;
 
-    // ✅ 하이라이트 효과
+    // 수정 하이라이트
     box.querySelectorAll("[contenteditable]").forEach(el => {
       el.addEventListener("focus", () => {
         el.dataset.originalBg = el.style.backgroundColor || "transparent";
@@ -163,87 +122,17 @@ function renderLayout(sections, brand) {
       el.addEventListener("blur", () => {
         el.style.backgroundColor = el.dataset.originalBg;
       });
-
-      // ✅ 수정 → localStorage 자동 저장
-      el.addEventListener("input", () => {
-        const id = el.dataset.id;
-        const field = el.dataset.field;
-        const value = el.innerText.trim();
-        const existing = JSON.parse(localStorage.getItem("piLayoutSave") || "{}");
-        existing[id] = existing[id] || {};
-        existing[id][field] = value;
-        localStorage.setItem("piLayoutSave", JSON.stringify(existing));
-        console.log(`💾 저장됨: ${id}.${field} = ${value}`);
-      });
-
-      // ✅ tone 실시간 변경 반응
-      el.addEventListener("keydown", e => {
-        if (e.key === "/" && el.innerText.includes("신뢰")) applyToneChange(box, "신뢰");
-        if (e.key === "/" && el.innerText.includes("감성")) applyToneChange(box, "감성");
-        if (e.key === "/" && el.innerText.includes("모던")) applyToneChange(box, "모던");
-        if (e.key === "/" && el.innerText.includes("친근")) applyToneChange(box, "친근");
-        if (e.key === "/" && el.innerText.includes("프리미엄")) applyToneChange(box, "프리미엄");
-      });
     });
 
     preview.appendChild(box);
   });
-
-  addExportButton();
 }
 
-// ---------------------- Tone 실시간 색상 변환 -------------------------
-function applyToneChange(box, tone) {
-  const style = toneMapBase[tone];
-  if (!style) return;
-  box.style.backgroundColor = style.bg;
-  box.style.color = style.text;
-  box.style.fontFamily = style.font;
-  box.querySelector("button").style.backgroundColor = style.button;
-  console.log(`🎨 tone 변경: ${tone}`);
-}
-
-// ---------------------- JSON Export -------------------------
-function addExportButton() {
-  if (document.getElementById("exportBtn")) return;
-  const exportBtn = document.createElement("button");
-  exportBtn.id = "exportBtn";
-  exportBtn.textContent = "JSON Export";
-  exportBtn.className = "w-full bg-yellow-500 text-white py-3 rounded-lg hover:bg-yellow-600 mt-2";
-  document.querySelector(".max-w-2xl").appendChild(exportBtn);
-
-  exportBtn.addEventListener("click", () => {
-    const data = localStorage.getItem("piLayoutSave") || "{}";
-    const blob = new Blob([data], { type: "application/json" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `PI_AutoLayout_Edit_${new Date().toISOString().split("T")[0]}.json`;
-    link.click();
-    console.log("📤 JSON Export 완료");
-  });
-}
-
-// ---------------------- JPG 저장 -------------------------
-downloadBtn.addEventListener("click", async () => {
-  const target = document.getElementById("preview");
-  downloadBtn.textContent = "이미지 생성 중...";
-  downloadBtn.disabled = true;
-
-  try {
-    const canvas = await html2canvas(target, {
-      backgroundColor: "#ffffff",
-      scale: 2,
-      useCORS: true,
-    });
-    const link = document.createElement("a");
-    link.download = `PI_AutoLayout_${new Date().toISOString().split("T")[0]}.jpg`;
-    link.href = canvas.toDataURL("image/jpeg", 0.95);
-    link.click();
-  } catch (error) {
-    console.error("이미지 저장 오류:", error);
-    alert("이미지를 생성하는 중 오류가 발생했습니다.");
-  } finally {
-    downloadBtn.textContent = "결과 JPG 다운로드";
-    downloadBtn.disabled = false;
-  }
-});
+// ---------------------- 톤 기본 스타일 -------------------------
+const toneMapBase = {
+  프리미엄: { bg: "#ede9fe", text: "#1e1b4b", button: "#5b21b6", font: "Pretendard" },
+  감성: { bg: "#fce7f3", text: "#831843", button: "#db2777", font: "Nanum Myeongjo" },
+  모던: { bg: "#e5e7eb", text: "#111827", button: "#1f2937", font: "Inter" },
+  친근: { bg: "#ffedd5", text: "#7c2d12", button: "#ea580c", font: "Noto Sans KR" },
+  신뢰: { bg: "#dbeafe", text: "#1e3a8a", button: "#2563eb", font: "Inter" },
+};
