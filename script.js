@@ -125,40 +125,72 @@ function renderLayout(sections, brand) {
     box.style.fontFamily = style.font;
     box.style.color = style.text;
 
-    // ✅ 수정 가능한 텍스트(contenteditable)
+    // ✅ 수정 가능한 텍스트(contenteditable) + 포커스 시 하이라이트
     box.innerHTML = `
-      <h2 contenteditable="true" style="font-weight:${style.weight};
-          font-size:${1.1 * ratio.title}rem;margin-bottom:6px;outline:none;">
+      <h2 contenteditable="true" style="
+          font-weight:${style.weight};
+          font-size:${1.1 * ratio.title}rem;
+          margin-bottom:6px;
+          outline:none;
+          cursor:text;
+          user-select:text;
+          transition:background-color 0.2s ease;">
           ${i + 1}. ${s.title}
       </h2>
 
-      <p contenteditable="true" style="font-size:${0.9 * ratio.subtitle}rem;
-          margin-bottom:4px;outline:none;">
+      <p contenteditable="true" style="
+          font-size:${0.9 * ratio.subtitle}rem;
+          margin-bottom:4px;
+          outline:none;
+          cursor:text;
+          user-select:text;
+          transition:background-color 0.2s ease;">
           ${s.subtitle}
       </p>
 
-      <p contenteditable="true" style="font-size:0.85rem;line-height:1.5;
-          margin-bottom:10px;outline:none;">
+      <p contenteditable="true" style="
+          font-size:0.85rem;
+          line-height:1.5;
+          margin-bottom:10px;
+          outline:none;
+          cursor:text;
+          user-select:text;
+          transition:background-color 0.2s ease;">
           ${s.description}
       </p>
 
-      <button contenteditable="true" style="background:${style.button};
-          color:white;border:none;padding:${8 * ratio.cta}px ${14 * ratio.cta}px;
-          border-radius:8px;cursor:pointer;font-size:${0.85 * ratio.cta}rem;outline:none;">
+      <button contenteditable="true" style="
+          background:${style.button};
+          color:white;
+          border:none;
+          padding:${8 * ratio.cta}px ${14 * ratio.cta}px;
+          border-radius:8px;
+          cursor:text;
+          user-select:text;
+          font-size:${0.85 * ratio.cta}rem;
+          outline:none;
+          transition:background-color 0.2s ease;">
           ${ctaText}
       </button>
     `;
 
-    // 미묘한 hover 효과
-    box.addEventListener("mouseenter", () => (box.style.transform = "scale(1.03)"));
-    box.addEventListener("mouseleave", () => (box.style.transform = "scale(1)"));
-
-    // ✅ 사용자가 수정한 내용 console에 자동 반영
+    // ✅ 하이라이트 효과 (focus/blur)
     box.querySelectorAll("[contenteditable]").forEach(el => {
+      el.addEventListener("focus", () => {
+        el.dataset.originalBg = el.style.backgroundColor || "transparent";
+        el.style.backgroundColor = "rgba(255, 255, 0, 0.2)"; // 부드러운 노란 하이라이트
+      });
+      el.addEventListener("blur", () => {
+        el.style.backgroundColor = el.dataset.originalBg;
+      });
+
       el.addEventListener("input", () => {
         console.log(`✏️ 수정됨: ${el.innerText}`);
       });
     });
+
+    box.addEventListener("mouseenter", () => (box.style.transform = "scale(1.03)"));
+    box.addEventListener("mouseleave", () => (box.style.transform = "scale(1)"));
 
     preview.appendChild(box);
   });
