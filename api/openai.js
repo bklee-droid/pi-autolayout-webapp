@@ -10,6 +10,9 @@ const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
 
+/* -----------------------------------------------
+✅ 1. OpenAI - 스토리형 상세페이지 JSON 생성
+------------------------------------------------*/
 app.post("/api/openai", async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -82,5 +85,46 @@ app.post("/api/openai", async (req, res) => {
   }
 });
 
+/* -----------------------------------------------
+✅ 2. OpenAI - 이미지 생성용 DALL·E API
+------------------------------------------------*/
+app.post("/api/image", async (req, res) => {
+  try {
+    const { imagePrompt } = req.body;
+    console.log("🎨 Image prompt received:", imagePrompt);
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
+    }
+
+    const imageRes = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-image-1",
+        prompt: imagePrompt,
+        size: "1024x1024"
+      })
+    });
+
+    const imageData = await imageRes.json();
+    console.log("🖼️ OpenAI image response:", imageData);
+
+    const imageUrl = imageData.data?.[0]?.url;
+    if (!imageUrl) throw new Error("Image URL not found in response");
+
+    res.status(200).json({ image_url: imageUrl });
+  } catch (error) {
+    console.error("🔥 Image generation error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/* -----------------------------------------------
+✅ 서버 실행
+------------------------------------------------*/
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
